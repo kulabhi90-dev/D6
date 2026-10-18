@@ -31,7 +31,7 @@ stages:
     - task: PublishPipelineArtifact@1
       displayName: 'Publish WAR'
       inputs:
-        targetPath: '$(System.DefaultWorkingDirectory)/target/ROOT.war'
+        targetPath: '$(System.DefaultWorkingDirectory)/target/'
         artifact: 'war-drop'
         publishLocation: 'pipeline'
 
