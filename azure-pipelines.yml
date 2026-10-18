@@ -1,37 +1,32 @@
-# Maven
-# Build your Java project and run tests with Apache Maven.
-# Add steps that analyze code, save build artifacts, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/java
-
 trigger:
-- master1
+  - master
 
 pool:
   vmImage: ubuntu-latest
 
 stages:
-# STAGE 1: Build the WAR
-- stage: Build
-  displayName: 'Build'
-  jobs:
-  - job: BuildWar
-    displayName: 'Maven package'
-    steps:
-    - task: Maven@4
-      displayName: 'mvn clean package'
-      inputs:
-        mavenPomFile: 'pom.xml'
-        goals: 'clean package'
-        options: '-B -U'
-        publishJUnitResults: false
-        javaHomeOption: 'JDKVersion'
-        jdkVersionOption: '1.17'
-        mavenVersionOption: 'Default'
+  # STAGE 1: Build the WAR
+  - stage: Build
+    displayName: 'Build'
+    jobs:
+      - job: BuildWar
+        displayName: 'Maven package'
+        steps:
+          - task: Maven@4
+            displayName: 'mvn clean package'
+            inputs:
+              mavenPomFile: 'pom.xml'
+              goals: 'clean package'
+              options: '-B -U'
+              publishJUnitResults: false
+              javaHomeOption: 'JDKVersion'
+              jdkVersionOption: '1.17'
+              mavenVersionOption: 'Default'
 
-    - task: PublishPipelineArtifact@1
-      displayName: 'Publish WAR'
-      inputs:
-        targetPath: '$(System.DefaultWorkingDirectory)/target/'
-        artifact: 'war-drop'
-        publishLocation: 'pipeline'
-
+          # Updated step targeting the webapp module output directory
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish WAR'
+            inputs:
+              targetPath: '$(System.DefaultWorkingDirectory)/webapp/target/'
+              artifact: 'war-drop'
+              publishLocation: 'pipeline'
