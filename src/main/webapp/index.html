@@ -125,9 +125,9 @@
                         const item = data[i];
                         const option = document.createElement("option");
                         
-                        // Fallback gracefully to value keys if your object structure varies
-                        option.value = item.id || item;
-                        option.text = item.name || item.fullName || item;
+                        // Explicitly target the exact key name your D5 service returns
+                        option.value = item.id || item.email || item; 
+                        option.text = item.fullName || item.name || item; 
                         
                         dropdown.add(option);
                     }
