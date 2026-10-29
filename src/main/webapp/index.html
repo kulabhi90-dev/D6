@@ -1,166 +1,142 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>D6 – Review Entries</title>
-<style>
-:root{--bg:#f4f7f6;--card:#fff;--ink:#1d2730;--mute:#5d6b79;--line:#d9dee3;--accent:#2a7de1;--ok:#13703a;--okbg:#e2f4e8;--warn:#8f5200;--warnbg:#fff0d4;--bad:#a8231b;--badbg:#fde6e4}
-@media (prefers-color-scheme:dark){:root{--bg:#12171c;--card:#1b222a;--ink:#e6ebf0;--mute:#97a4b1;--line:#2f3943;--accent:#5aa2f2;--ok:#79d99a;--okbg:#16301f;--warn:#f0b64d;--warnbg:#38290d;--bad:#ff9d94;--badbg:#3b1b19}}
-*{box-sizing:border-box}
-body{margin:0;min-height:100vh;display:flex;justify-content:center;align-items:flex-start;padding:24px 16px;background:var(--bg);color:var(--ink);font:15px/1.5 "Segoe UI",system-ui,Arial,sans-serif}
-.card{width:100%;max-width:520px;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:24px}
-h1{margin:0 0 16px;font-size:21px;text-align:center}
-label{display:block;font-weight:600;margin-bottom:6px}
-select{width:100%;padding:10px;font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:6px}
-select:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
-dl{display:grid;grid-template-columns:120px 1fr;gap:8px 12px;margin:20px 0 0}
-dt{color:var(--mute)}
-dd{margin:0;word-break:break-word}
-.badge{display:inline-block;padding:1px 9px;border-radius:4px;font-size:13px;font-weight:600}
-.PENDING{background:var(--warnbg);color:var(--warn)}
-.REVIEWED{background:var(--okbg);color:var(--ok)}
-.actions{display:flex;gap:10px;margin-top:22px}
-button{flex:1;padding:11px;font:inherit;font-weight:600;border-radius:6px;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--ink)}
-button.review{background:var(--accent);border-color:var(--accent);color:#fff}
-button.reject{color:var(--bad);border-color:var(--bad)}
-button:disabled{opacity:.45;cursor:not-allowed}
-.msg{margin-top:16px;padding:10px 12px;border-radius:6px;font-size:14px}
-.msg.ok{background:var(--okbg);color:var(--ok)}
-.msg.err{background:var(--badbg);color:var(--bad)}
-[hidden]{display:none!important}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Management</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f8f9fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            width: 450px;
+            text-align: center;
+        }
+        h2 {
+            margin-bottom: 24px;
+            color: #1e293b;
+        }
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #475569;
+        }
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 16px;
+            background-color: #fff;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        select:focus {
+            border-color: #3b82f6;
+        }
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        .btn-review {
+            background-color: #3b82f6;
+            color: white;
+        }
+        .btn-reject {
+            background-color: transparent;
+            color: #ef4444;
+            border: 1px solid #fca5a5;
+        }
+    </style>
 </head>
 <body>
-<main class="card">
-  <h1>Review Entries</h1>
 
-  <label for="pick">Full Name</label>
-  <select id="pick" aria-describedby="msg"></select>
+    <div class="container">
+        <h2>Review Entries</h2>
+        
+        <div class="form-group">
+            <label for="fullName">Full Name</label>
+            <select id="fullName">
+                <option value="" disabled selected>Loading entries...</option>
+            </select>
+        </div>
 
-  <dl id="detail" hidden>
-    <dt>ID</dt><dd id="d-id"></dd>
-    <dt>Full name</dt><dd id="d-name"></dd>
-    <dt>Email</dt><dd id="d-email"></dd>
-    <dt>City</dt><dd id="d-city"></dd>
-    <dt>Gender</dt><dd id="d-gender"></dd>
-    <dt>Received</dt><dd id="d-created"></dd>
-    <dt>Status</dt><dd><span id="d-status" class="badge"></span> <span id="d-by"></span></dd>
-  </dl>
+        <div class="btn-group">
+            <button class="btn-review" id="reviewBtn">Review</button>
+            <button class="btn-reject" id="rejectBtn">Reject</button>
+        </div>
+    </div>
 
-  <div class="actions">
-    <button id="b-review" class="review" disabled>Review</button>
-    <button id="b-reject" class="reject" disabled>Reject</button>
-  </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Target the relative API mapping pointing to your deployed ReviewApiServlet
+            const url = "ReviewApiServlet"; 
+            const dropdown = document.getElementById("fullName");
 
-  <div id="msg" class="msg" role="status" hidden></div>
-</main>
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Network response was not ok: " + response.status);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    dropdown.innerHTML = ""; // Wipe the "Loading..." placeholder entry safely
+                    
+                    if (!data || data.length === 0) {
+                        const emptyOpt = document.createElement("option");
+                        emptyOpt.text = "No records found in database";
+                        emptyOpt.disabled = true;
+                        dropdown.add(emptyOpt);
+                        return;
+                    }
 
-<script>
-const $ = id => document.getElementById(id);
-let current = null;   // the entry shown on screen
-
-async function api(path, opts = {}) {
-  const r = await fetch('api/entries' + path, {
-    credentials: 'same-origin',
-    ...opts,
-    headers: { 'X-Requested-With': 'D6', ...(opts.headers || {}) }
-  });
-  let data = null;
-  try { data = await r.json(); } catch (e) { /* no body */ }
-  if (!r.ok) throw new Error((data && data.error) || ('Request failed (' + r.status + ')'));
-  return data;
-}
-
-function say(text, kind) {
-  const m = $('msg');
-  m.textContent = text;
-  m.className = 'msg ' + kind;
-  m.hidden = !text;
-}
-
-function showDetail(e) {
-  current = e;
-  $('d-id').textContent = e.id;
-  $('d-name').textContent = e.fullName;
-  $('d-email').textContent = e.emailAddress;
-  $('d-city').textContent = e.city;
-  $('d-gender').textContent = e.gender;
-  $('d-created').textContent = e.receivedAt ? e.receivedAt.slice(0, 19) + ' UTC' : '';
-  const s = $('d-status');
-  s.textContent = e.status;
-  s.className = 'badge ' + e.status;
-  $('d-by').textContent = e.reviewedBy ? 'by ' + e.reviewedBy : '';
-  $('detail').hidden = false;
-  $('b-review').disabled = e.status === 'REVIEWED';
-  $('b-reject').disabled = false;
-}
-
-function clearDetail() {
-  current = null;
-  $('detail').hidden = true;
-  $('b-review').disabled = true;
-  $('b-reject').disabled = true;
-}
-
-async function loadList(selectId) {
-  const list = await api('');
-  list.sort((a, b) => a.fullName.localeCompare(b.fullName));
-  const sel = $('pick');
-  sel.innerHTML = '';
-  const first = document.createElement('option');
-  first.value = '';
-  first.textContent = list.length ? '— Select a name —' : '— No entries —';
-  sel.appendChild(first);
-  for (const e of list) {
-    const o = document.createElement('option');
-    o.value = e.id;
-    o.textContent = e.fullName + (e.status === 'REVIEWED' ? '  ✓ reviewed' : '');
-    sel.appendChild(o);
-  }
-  if (selectId && list.some(e => e.id === selectId)) {
-    sel.value = selectId;
-  } else {
-    clearDetail();
-  }
-}
-
-$('pick').addEventListener('change', async () => {
-  say('', 'ok');
-  const id = $('pick').value;
-  if (!id) { clearDetail(); return; }
-  try { showDetail(await api('/' + id)); }
-  catch (e) { clearDetail(); say(e.message, 'err'); await refresh(); }
-});
-
-$('b-review').addEventListener('click', async () => {
-  if (!current) return;
-  $('b-review').disabled = true;
-  try {
-    const updated = await api('/' + current.id + '/review', { method: 'POST' });
-    await loadList(updated.id);
-    showDetail(updated);
-    say('Marked as reviewed.', 'ok');
-  } catch (e) { say(e.message, 'err'); $('b-review').disabled = false; }
-});
-
-$('b-reject').addEventListener('click', async () => {
-  if (!current) return;
-  const name = current.fullName;
-  if (!confirm('Reject "' + name + '"?\n\nThis permanently deletes the entry from the D5 database.')) return;
-  $('b-reject').disabled = true;
-  try {
-    await api('/' + current.id + '/reject', { method: 'POST' });
-    clearDetail();
-    await loadList();
-    say('Rejected "' + name + '" – the entry was deleted from the D5 database.', 'ok');
-  } catch (e) { say(e.message, 'err'); $('b-reject').disabled = false; }
-});
-
-async function refresh() {
-  try { await loadList(current && current.id); } catch (e) { say(e.message, 'err'); }
-}
-refresh();
-</script>
+                    // Loop through results utilizing block-scoped iteration variables
+                    for (let i = 0; i < data.length; i++) {
+                        const item = data[i];
+                        const option = document.createElement("option");
+                        
+                        // Fallback gracefully to value keys if your object structure varies
+                        option.value = item.id || item;
+                        option.text = item.name || item.fullName || item;
+                        
+                        dropdown.add(option);
+                    }
+                })
+                .catch(error => {
+                    console.error("Error fetching dropdown data entries:", error);
+                    dropdown.innerHTML = '<option disabled style="color:red;">Error loading records</option>';
+                });
+        });
+    </script>
 </body>
 </html>
