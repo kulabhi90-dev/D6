@@ -5,8 +5,8 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  serviceConnection: 'Free_SQL'            # same Azure Resource Manager service connection as D5
-  webAppName: 'Integration'   # a NEW App Service, not 'abhishekk'
+  serviceConnection: 'Free_SQL'
+  webAppName: 'Integration'
 
 stages:
 - stage: Build
@@ -20,7 +20,7 @@ stages:
       inputs:
         mavenPomFile: 'pom.xml'
         goals: 'clean package'
-        options: '-B -U'
+        options: '-B'
         publishJUnitResults: false
         javaHomeOption: 'JDKVersion'
         jdkVersionOption: '1.17'
