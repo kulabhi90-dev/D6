@@ -86,7 +86,7 @@ function showDetail(e) {
   $('d-email').textContent = e.emailAddress;
   $('d-city').textContent = e.city;
   $('d-gender').textContent = e.gender;
-  $('d-created').textContent = e.createdAt ? e.createdAt.replace('T', ' ').slice(0, 19) + ' UTC' : '';
+  $('d-created').textContent = e.receivedAt ? e.receivedAt.slice(0, 19) + ' UTC' : '',
   const s = $('d-status');
   s.textContent = e.status;
   s.className = 'badge ' + e.status;
