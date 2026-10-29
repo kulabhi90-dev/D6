@@ -6,7 +6,7 @@
     <title>Review Management</title>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: #f8f9fa;
             display: flex;
             justify-content: center;
@@ -86,7 +86,7 @@
         <div class="form-group">
             <label for="fullName">Full Name</label>
             <select id="fullName">
-                <option value="" disabled selected>Loading entries...</option>
+                <option value="" disabled selected>Loading entries from D5 Database...</option>
             </select>
         </div>
 
@@ -98,44 +98,50 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            // Target the relative API mapping pointing to your deployed ReviewApiServlet
-            const url = "ReviewApiServlet"; 
+            // Direct secure API route targeting the D5 Users API endpoint
+            const url = "https://azurewebsites.net"; 
             const dropdown = document.getElementById("fullName");
 
-            fetch(url)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error("Network response was not ok: " + response.status);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    dropdown.innerHTML = ""; // Wipe the "Loading..." placeholder entry safely
-                    
-                    if (!data || data.length === 0) {
-                        const emptyOpt = document.createElement("option");
-                        emptyOpt.text = "No records found in database";
-                        emptyOpt.disabled = true;
-                        dropdown.add(emptyOpt);
-                        return;
-                    }
+            fetch(url, {
+                method: "GET",
+                headers: {
+                    "Accept": "application/json"
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("HTTP connection error: " + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                dropdown.innerHTML = ""; // Clear out the placeholder load string
 
-                    // Loop through results utilizing block-scoped iteration variables
-                    for (let i = 0; i < data.length; i++) {
-                        const item = data[i];
-                        const option = document.createElement("option");
-                        
-                        // Explicitly target the exact key name your D5 service returns
-                        option.value = item.id || item.email || item; 
-                        option.text = item.fullName || item.name || item; 
-                        
-                        dropdown.add(option);
-                    }
-                })
-                .catch(error => {
-                    console.error("Error fetching dropdown data entries:", error);
-                    dropdown.innerHTML = '<option disabled style="color:red;">Error loading records</option>';
-                });
+                // If D5 returns an empty database array, show a message instead of an empty list
+                if (!data || data.length === 0) {
+                    const emptyOpt = document.createElement("option");
+                    emptyOpt.text = "No saved database entries found in D5";
+                    emptyOpt.disabled = true;
+                    dropdown.add(emptyOpt);
+                    return;
+                }
+
+                // Safely loop through the confirmed records in the D5 database
+                for (let i = 0; i < data.length; i++) {
+                    const item = data[i];
+                    const option = document.createElement("option");
+                    
+                    // Maps database values fields dynamically (supports objects or raw array elements)
+                    option.value = item.id || item.email || item;
+                    option.text = item.fullName || item.name || item;
+                    
+                    dropdown.add(option);
+                }
+            })
+            .catch(error => {
+                console.error("Error communicating with D5 Database engine:", error);
+                dropdown.innerHTML = '<option disabled style="color:red;">Failed to retrieve D5 records</option>';
+            });
         });
     </script>
 </body>
