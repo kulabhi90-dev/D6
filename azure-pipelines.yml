@@ -1,0 +1,54 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  serviceConnection: 'Free_SQL'            # same Azure Resource Manager service connection as D5
+  webAppName: 'REPLACE-WITH-D6-APP-NAME'   # a NEW App Service, not 'abhishekk'
+
+stages:
+- stage: Build
+  displayName: 'Build'
+  jobs:
+  - job: BuildWar
+    displayName: 'Maven package'
+    steps:
+    - task: Maven@4
+      displayName: 'mvn clean package'
+      inputs:
+        mavenPomFile: 'pom.xml'
+        goals: 'clean package'
+        options: '-B -U'
+        publishJUnitResults: false
+        javaHomeOption: 'JDKVersion'
+        jdkVersionOption: '1.17'
+        mavenVersionOption: 'Default'
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish WAR'
+      inputs:
+        targetPath: '$(System.DefaultWorkingDirectory)/target/ROOT.war'
+        artifact: 'war-drop'
+        publishLocation: 'pipeline'
+
+- stage: Deploy
+  displayName: 'Deploy'
+  dependsOn: Build
+  condition: succeeded()
+  jobs:
+  - deployment: DeployToTomcat
+    displayName: 'Deploy to App Service'
+    environment: 'production'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzureWebApp@1
+            displayName: 'Deploy WAR'
+            inputs:
+              azureSubscription: '$(serviceConnection)'
+              appType: 'webAppLinux'
+              appName: '$(webAppName)'
+              runtimeStack: 'TOMCAT|10.1-java17'
+              package: '$(Pipeline.Workspace)/war-drop/ROOT.war'
