@@ -26,14 +26,10 @@ public class AuthFilter implements Filter {
             throws IOException, ServletException {
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse resp = (HttpServletResponse) response;
-                if (req.getRequestURI().equals(req.getContextPath() + "/api/intake")) {
-            chain.doFilter(request, response);
-            return;
-        }if (req.getRequestURI().equals(req.getContextPath() + "/api/intake")) {
+               if (req.getRequestURI().equals(req.getContextPath() + "/api/intake")) {
             chain.doFilter(request, response);
             return;
         }
-
         String expectedUser = env("D6_USER");
         String expectedPass = env("D6_PASSWORD");
         if (expectedUser == null || expectedPass == null) {
