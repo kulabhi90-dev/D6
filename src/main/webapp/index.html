@@ -95,29 +95,22 @@
             <button class="btn-reject" id="rejectBtn">Reject</button>
         </div>
     </div>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Target D6's local proxy endpoint instead of D5 directly
+        const url = "ReviewApiServlet"; 
+        const dropdown = document.getElementById("fullName");
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            // Direct secure API route targeting the D5 Users API endpoint
-            const url = "https://azurewebsites.net"; 
-            const dropdown = document.getElementById("fullName");
-
-            fetch(url, {
-                method: "GET",
-                headers: {
-                    "Accept": "application/json"
-                }
-            })
+        fetch(url)
             .then(response => {
                 if (!response.ok) {
-                    throw new Error("HTTP connection error: " + response.status);
+                    throw new Error("HTTP error: " + response.status);
                 }
                 return response.json();
             })
             .then(data => {
-                dropdown.innerHTML = ""; // Clear out the placeholder load string
-
-                // If D5 returns an empty database array, show a message instead of an empty list
+                dropdown.innerHTML = ""; 
+                
                 if (!data || data.length === 0) {
                     const emptyOpt = document.createElement("option");
                     emptyOpt.text = "No saved database entries found in D5";
@@ -126,23 +119,19 @@
                     return;
                 }
 
-                // Safely loop through the confirmed records in the D5 database
                 for (let i = 0; i < data.length; i++) {
                     const item = data[i];
                     const option = document.createElement("option");
-                    
-                    // Maps database values fields dynamically (supports objects or raw array elements)
-                    option.value = item.id || item.email || item;
+                    option.value = item.email || item.id || item;
                     option.text = item.fullName || item.name || item;
-                    
                     dropdown.add(option);
                 }
             })
             .catch(error => {
-                console.error("Error communicating with D5 Database engine:", error);
-                dropdown.innerHTML = '<option disabled style="color:red;">Failed to retrieve D5 records</option>';
+                console.error("Proxy error:", error);
+                dropdown.innerHTML = '<option disabled style="color:red;">Failed to retrieve records from backend</option>';
             });
-        });
-    </script>
-</body>
+    });
+</script>
+    </body>
 </html>
