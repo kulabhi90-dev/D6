@@ -5,7 +5,7 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  serviceConnection: 'Free_SQL'
+  serviceConnection: 'Azure subscription 1 (6b0b5a47-5d27-4bc0-92c6-7e2a31d49e7b)'
   webAppName: 'Integration'
 
 stages:
