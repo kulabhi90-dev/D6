@@ -6,7 +6,7 @@ pool:
 
 variables:
   serviceConnection: 'Free_SQL'            # same Azure Resource Manager service connection as D5
-  webAppName: 'REPLACE-WITH-D6-APP-NAME'   # a NEW App Service, not 'abhishekk'
+  webAppName: 'Integration'   # a NEW App Service, not 'abhishekk'
 
 stages:
 - stage: Build
