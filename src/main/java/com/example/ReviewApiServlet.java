@@ -30,10 +30,11 @@ public class ReviewApiServlet extends HttpServlet {
         String[] p = parts(req);
         try {
             if (p.length == 0) {
+                syncFromD5();
                 JsonArray arr = new JsonArray();
                 try (Connection con = Db.getConnection();
                      PreparedStatement ps = con.prepareStatement(
-                             "SELECT " + COLS + " FROM dbo.d6_entries ORDER BY full_name, d5_id");
+                             "SELECT " + COLS + " FROM dbo.d6_entries WHERE status = 'PENDING' ORDER BY full_name, d5_id");
                      ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) arr.add(row(rs));
                 }
@@ -59,13 +60,13 @@ public class ReviewApiServlet extends HttpServlet {
             return;
         }
         String[] p = parts(req);
-        if (p.length != 2) { send(resp, 404, err("Use /api/entries/{id}/review or /reject")); return; }
+        if (p.length != 2) { send(resp, 404, err("Use /api/entries/{id}/accept or /reject")); return; }
         Integer id = parseId(p[0]);
         if (id == null) { send(resp, 400, err("id must be a number")); return; }
 
         try {
             switch (p[1]) {
-                case "review" -> review(id, String.valueOf(req.getAttribute("currentUser")), resp);
+                case "accept" -> accept(id, String.valueOf(req.getAttribute("currentUser")), resp);
                 case "reject" -> reject(id, resp);
                 default -> send(resp, 404, err("Unknown action '" + p[1] + "'"));
             }
@@ -74,11 +75,30 @@ public class ReviewApiServlet extends HttpServlet {
         }
     }
 
-    private void review(int id, String user, HttpServletResponse resp) throws Exception {
+    /**
+     * Copies every entry saved in D5 (dbo.users) that D6 does not have yet into dbo.d6_entries.
+     * Covers old entries and any entry the push from D5 missed. Needs D5 and D6 on the same database.
+     * A failure here is logged but never stops the list from loading.
+     */
+    private static void syncFromD5() {
+        String sql = "INSERT INTO dbo.d6_entries (d5_id, full_name, email_address, city, gender) "
+                + "SELECT u.id, u.full_name, u.email_address, u.city, ISNULL(NULLIF(u.gender, ''), 'Not given') "
+                + "FROM dbo.users u "
+                + "WHERE NOT EXISTS (SELECT 1 FROM dbo.d6_entries e WHERE e.d5_id = u.id)";
+        try (Connection con = Db.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            int n = ps.executeUpdate();
+            if (n > 0) LOG.info("Synced " + n + " new entries from D5 into d6_entries");
+        } catch (Exception e) {
+            LOG.log(Level.WARNING, "Sync from D5 failed (list will show what D6 already has)", e);
+        }
+    }
+
+    private void accept(int id, String user, HttpServletResponse resp) throws Exception {
         int n;
         try (Connection con = Db.getConnection();
              PreparedStatement ps = con.prepareStatement(
-                     "UPDATE dbo.d6_entries SET status = 'REVIEWED', reviewed_by = ?, reviewed_at = SYSUTCDATETIME() "
+                     "UPDATE dbo.d6_entries SET status = 'ACCEPTED', reviewed_by = ?, reviewed_at = SYSUTCDATETIME() "
                              + "WHERE d5_id = ?")) {
             ps.setString(1, user);
             ps.setInt(2, id);
