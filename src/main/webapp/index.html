@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Management</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f8f9fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            width: 450px;
+            text-align: center;
+        }
+        h2 {
+            margin-bottom: 24px;
+            color: #1e293b;
+        }
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #475569;
+        }
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 16px;
+            background-color: #fff;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        select:focus {
+            border-color: #3b82f6;
+        }
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        .btn-review {
+            background-color: #3b82f6;
+            color: white;
+        }
+        .btn-reject {
+            background-color: transparent;
+            color: #ef4444;
+            border: 1px solid #fca5a5;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Review Entries</h2>
+        
+        <div class="form-group">
+            <label for="fullName">Full Name</label>
+            <select id="fullName">
+                <option value="" disabled selected>Loading entries from D5 Database...</option>
+            </select>
+        </div>
+
+        <div id="details" style="text-align:left;color:#475569;line-height:1.7;margin-top:8px;"></div>
+
+        <div class="btn-group">
+            <button class="btn-review" id="acceptBtn">Accept</button>
+            <button class="btn-reject" id="rejectBtn">Reject</button>
+        </div>
+        <p id="msg" style="margin-top:16px;font-weight:600;"></p>
+    </div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const dropdown = document.getElementById("fullName");
+        const details  = document.getElementById("details");
+        const msg      = document.getElementById("msg");
+        let entries = [];
+
+        function setMsg(text, isError) {
+            msg.textContent = text || "";
+            msg.style.color = isError ? "#ef4444" : "#16a34a";
+        }
+
+        function showDetails() {
+            const e = entries.find(x => String(x.id) === dropdown.value);
+            details.innerHTML = e
+                ? "<b>Email:</b> " + esc(e.emailAddress) + "<br><b>City:</b> " + esc(e.city) +
+                  "<br><b>Gender:</b> " + esc(e.gender) + "<br><b>Status:</b> " + esc(e.status)
+                : "";
+        }
+
+        function esc(t) {
+            const d = document.createElement("div");
+            d.textContent = t == null ? "" : t;
+            return d.innerHTML;
+        }
+
+        function load() {
+            fetch("api/entries")
+                .then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+                .then(data => {
+                    entries = data;
+                    dropdown.innerHTML = "";
+                    if (!data.length) {
+                        dropdown.innerHTML = '<option value="">No pending entries</option>';
+                        details.innerHTML = "";
+                        return;
+                    }
+                    data.forEach(item => {
+                        const o = document.createElement("option");
+                        o.value = item.id;
+                        o.textContent = item.fullName;       // full name only
+                        dropdown.appendChild(o);
+                    });
+                    showDetails();
+                })
+                .catch(err => {
+                    console.error(err);
+                    dropdown.innerHTML = '<option value="">Could not load entries (' + err.message + ')</option>';
+                });
+        }
+
+        function act(action) {
+            if (!dropdown.value) return;
+            if (action === "reject" && !confirm("Reject deletes this entry from D5 as well. Continue?")) return;
+            fetch("api/entries/" + dropdown.value + "/" + action, {
+                method: "POST",
+                headers: { "X-Requested-With": "D6" }
+            })
+            .then(r => r.json().then(j => ({ ok: r.ok, j })))
+            .then(({ ok, j }) => {
+                if (!ok) throw new Error(j.error || "Request failed");
+                setMsg(action === "accept" ? "Entry accepted." : "Entry rejected.", false);
+                load();
+            })
+            .catch(err => setMsg(err.message, true));
+        }
+
+        dropdown.addEventListener("change", showDetails);
+        document.getElementById("acceptBtn").addEventListener("click", () => act("accept"));
+        document.getElementById("rejectBtn").addEventListener("click", () => act("reject"));
+        load();
+    });
+</script>
+    </body>
+</html>
